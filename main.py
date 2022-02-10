@@ -20,6 +20,14 @@ async def stats(
     ):
     await interaction.client.user_stats(interaction, member)
 
+@client.slash_command(guild_ids=[config.guild_id])
+async def history(
+    interaction: Interaction,
+    member: Member = SlashOption(name="user", description="User to request stats for", required=True),
+    limit: int = SlashOption(required=False, description="Number of games to show. Optional (default 10). Enter 0 for full history.")
+    ):
+    await interaction.client.user_history(interaction, member, limit if limit is not None else 10)
+
 
 @client.slash_command(guild_ids=[config.guild_id])
 async def leaderboard(interaction: Interaction):

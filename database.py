@@ -81,6 +81,10 @@ class WordleStats(object):
         total_losses = total_games - total_wins
         return par, average_score, total_losses
 
+    def GetUserGameHistory(self, username, limit=10):
+        res = self.database.GetUserGameHistory(username, limit)
+        return res
+
     def GenerateLeaderboard(self):
         scores = self.database.GetAllUserScores()
         sorted_scores = sorted(scores, key=lambda x: x[1])
@@ -126,6 +130,17 @@ class WordleDatabaseAccess(object):
         if res[0][3] == 0:  # this is 0 total games, probably should figure out a better way to do this 
             return None
         return res[0]
+
+    def GetUserGameHistory(self, username, limit=10):
+        cur = self.connection.cursor()
+        res = cur.execute('''
+            SELECT game_id, score, won 
+            FROM Games g 
+            INNER JOIN Users u ON u.discord_user_id = g.discord_user_id 
+            WHERE u.username=:username
+            ORDER BY game_id DESC
+            ''', {'username': username}).fetchall()
+        return res[:limit] if limit is not None else res
 
     def GetAllUserScores(self):
         cur = self.connection.cursor()

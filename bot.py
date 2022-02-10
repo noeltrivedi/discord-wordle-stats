@@ -11,6 +11,8 @@ Average Score: {}
 Total Losses: {}
 '''
 
+kHistoryLine = 'Wordle {}: {}/6'
+
 class WordleStatBot(nextcord.Client):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -71,6 +73,22 @@ class WordleStatBot(nextcord.Client):
         else:
             par, average_score, total_losses = res
             message = kUserStatsMessage.format(member.name, par, average_score, total_losses)
+            await interaction.response.send_message(self._addCodeBlocks(message))
+
+    async def user_history(self, interaction, member, limit):
+        limit = None if limit == 0 else limit
+        res = self.database.GetUserGameHistory(member.name, limit)
+        if len(res) == 0:
+            await interaction.response.send_message("{} has not played any loaded games".format(member.name))
+        else:
+            lines = []
+            if limit is None:
+                lines.append('All games for {}'.format(member.name))
+            else:
+                lines.append('Previous {} game{} for {}'.format(limit, '' if limit == 1 else 's', member.name))
+
+            lines.extend(kHistoryLine.format(*i) for i in res)
+            message = '\n'.join(lines)
             await interaction.response.send_message(self._addCodeBlocks(message))
 
     async def leaderboard(self, interaction):
