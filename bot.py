@@ -113,11 +113,10 @@ class WordleStatBot(nextcord.Client):
         wda = self.database.database  # TODO(ntr) hack, fix
         users = wda.GetAllUsers()
         latest_game_id = wda.GetLatestGame()
-        games_to_include = 15
+        games_to_include = 20
 
         starting_game_id = latest_game_id - games_to_include +1
         starting_scores = wda.GetAllUserScoresAsOfGameId(starting_game_id)
-        print(starting_scores)
         starting_scores_map = {tup[0]: tup[1] for tup in starting_scores}
 
         for user, discord_user_id in users:
@@ -128,7 +127,6 @@ class WordleStatBot(nextcord.Client):
                 current_score = starting_scores_map[user]
 
                 score = raw_score - 4
-                print('StartingCurrent', current_score, 'ThisGameScore', score)
                 x.append(game_id)
                 y.append(score + current_score)
                 starting_scores_map[user] += score 
