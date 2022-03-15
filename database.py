@@ -142,15 +142,39 @@ class WordleDatabaseAccess(object):
             ''', {'username': username}).fetchall()
         return res[:limit] if limit is not None else res
 
-    def GetAllUserScores(self):
+    def GetLatestGame(self):
+        cur = self.connection.cursor()
+        res = cur.execute('''
+            SELECT game_id
+            FROM Games g 
+            ORDER BY game_id DESC
+            ''').fetchall()
+        return res[0][0]
+
+    def GetAllUserScoresAsOfGameId(self, game_id):
         cur = self.connection.cursor()
         res = cur.execute('''
             SELECT u.username, SUM(Score) - 4 * COUNT(*) , COUNT(*)
             FROM Games g 
             INNER JOIN Users u ON u.discord_user_id = g.discord_user_id 
+            WHERE g.game_id < :game_id
             GROUP BY u.username
-            ''').fetchall()
+            ''', {'game_id': game_id}).fetchall()
         return res
+
+    def GetUserGameHistorySinceGameId(self, username, game_id):
+        cur = self.connection.cursor()
+        res = cur.execute('''
+            SELECT game_id, score, won 
+            FROM Games g 
+            INNER JOIN Users u ON u.discord_user_id = g.discord_user_id 
+            WHERE u.username=:username AND g.game_id >= :game_id
+            ORDER BY game_id DESC
+            ''', (username, game_id)).fetchall()
+        return res
+
+    def GetAllUserScores(self):
+        return self.GetAllUserScoresAsOfGameId(1000000)
 
     def UpdateLastParsedMessage(self, message_id, channel_id):
         last_message = self.GetLastParsedMesasge(channel_id)
@@ -168,6 +192,15 @@ class WordleDatabaseAccess(object):
                 WHERE channel_id=:channel_id
                 ''', (message_id, channel_id))
         self.connection.commit()
+
+    def GetAllUsers(self): # TODO(ntr) add channel id here
+        cur = self.connection.cursor()
+        res = cur.execute('''
+            SELECT u.username, u.discord_user_id
+            FROM Users u
+            ''').fetchall()
+        return res
+
 
 if __name__ == '__main__':
     import sys

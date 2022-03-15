@@ -2,3 +2,4 @@ config.json
 *.db
 *.db.bak
 __pycache__
+*.png

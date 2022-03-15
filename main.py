@@ -33,4 +33,8 @@ async def history(
 async def leaderboard(interaction: Interaction):
     await interaction.client.leaderboard(interaction)
 
+@client.slash_command(guild_ids=[config.guild_id])
+async def graph(interaction: Interaction):
+    await interaction.client.graph(interaction)
+
 client.run(config.discord_token)

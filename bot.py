@@ -1,8 +1,13 @@
 import nextcord
 from nextcord.ext import tasks
 import sqlite3
-
+import matplotlib.pyplot as plt
 from database import WordleStats, WordleDatabaseAccess
+
+from matplotlib.ticker import MaxNLocator
+ax = plt.figure().gca()
+ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 
 kUserStatsMessage = '''
 Player {}
@@ -102,3 +107,37 @@ class WordleStatBot(nextcord.Client):
         table = tabulate(table_data, headers=["Rank", "User", "Par", "Total Games"])
 
         await interaction.response.send_message('```' + table + '```')
+
+
+    async def graph(self, interaction):
+        wda = self.database.database  # TODO(ntr) hack, fix
+        users = wda.GetAllUsers()
+        latest_game_id = wda.GetLatestGame()
+        games_to_include = 15
+
+        starting_game_id = latest_game_id - games_to_include +1
+        starting_scores = wda.GetAllUserScoresAsOfGameId(starting_game_id)
+        print(starting_scores)
+        starting_scores_map = {tup[0]: tup[1] for tup in starting_scores}
+
+        for user, discord_user_id in users:
+            games = wda.GetUserGameHistorySinceGameId(user, starting_game_id)
+            x = []
+            y = []
+            for game_id, raw_score, _ in reversed(games):
+                current_score = starting_scores_map[user]
+
+                score = raw_score - 4
+                print('StartingCurrent', current_score, 'ThisGameScore', score)
+                x.append(game_id)
+                y.append(score + current_score)
+                starting_scores_map[user] += score 
+            plt.plot(x, y, marker='o', label=user)
+
+        plt.xlabel('Game#')
+        plt.ylabel('Par')
+        plt.legend()
+        plt.savefig('wordle_par.png')
+
+        with open('wordle_par.png', 'rb') as f:
+                await interaction.response.send_message(file=nextcord.File(f))
