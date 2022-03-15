@@ -134,8 +134,10 @@ class WordleStatBot(nextcord.Client):
 
         plt.xlabel('Game#')
         plt.ylabel('Par')
+        
         plt.legend()
         plt.savefig('wordle_par.png')
+        plt.clf()
 
         with open('wordle_par.png', 'rb') as f:
                 await interaction.response.send_message(file=nextcord.File(f))
