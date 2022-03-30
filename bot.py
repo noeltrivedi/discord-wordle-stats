@@ -5,9 +5,6 @@ import matplotlib.pyplot as plt
 from database import WordleStats, WordleDatabaseAccess
 
 from matplotlib.ticker import MaxNLocator
-ax = plt.figure().gca()
-ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 
 kUserStatsMessage = '''
 Player {}
@@ -110,6 +107,10 @@ class WordleStatBot(nextcord.Client):
 
 
     async def graph(self, interaction):
+        ax = plt.figure().gca()
+        ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+        ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+
         wda = self.database.database  # TODO(ntr) hack, fix
         users = wda.GetAllUsers()
         latest_game_id = wda.GetLatestGame()
